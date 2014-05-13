@@ -1,8 +1,10 @@
 import os
 from Crypto.Hash import MD5
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto import Random
-
+from Crypto.Random import random
+import string
 
 def sign_file(f):
     # TODO: For Part 2, you'll use public key crypto here
@@ -10,8 +12,8 @@ def sign_file(f):
     # This is naive -- replace it with something better!
     with open('pastebot.net/priv_key', 'r') as g:
         key = RSA.importKey(g.read())
-    text = 'abcdefgh'
-    hash = MD5.new(text.encode('utf-8')).digest()
+    text = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
+    hash = SHA256.new(text.encode('utf-8')).digest()
     signature = key.sign(hash, '')
     return bytes(str(signature[0]) + "\n" + text + "\n", "ascii") +  f
     # return bytes("Caesar\n", "ascii") + f
