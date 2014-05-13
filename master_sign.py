@@ -1,11 +1,20 @@
 import os
+from Crypto.Hash import MD5
+from Crypto.PublicKey import RSA
+from Crypto import Random
 
 
 def sign_file(f):
     # TODO: For Part 2, you'll use public key crypto here
     # The existing scheme just ensures the updates start with the line 'Caesar'
     # This is naive -- replace it with something better!
-    return bytes("Caesar\n", "ascii") + f
+    with open('pastebot.net/priv_key', 'r') as g:
+        key = RSA.importKey(g.read())
+    text = 'abcdefgh'
+    hash = MD5.new(text.encode('utf-8')).digest()
+    signature = key.sign(hash, '')
+    return bytes(str(signature[0]) + "\n" + text + "\n", "ascii") +  f
+    # return bytes("Caesar\n", "ascii") + f
 
 
 if __name__ == "__main__":

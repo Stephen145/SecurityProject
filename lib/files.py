@@ -1,4 +1,6 @@
 import os
+from Crypto.PublicKey import RSA
+from Crypto.Hash import MD5
 
 # Instead of storing files on disk,
 # we'll save them in memory for simplicity
@@ -13,14 +15,18 @@ def save_valuable(data):
 
 def encrypt_for_master(data):
     # Encrypt the file so it can only be read by the bot master
+    with open('pub_key', 'r') as f:
+        pub_key = RSA.importKey(f.read())
+    data = pub_key.encrypt(data, 32) 
     return data
 
 def upload_valuables_to_pastebot(fn):
     # Encrypt the valuables so only the bot master can read them
     valuable_data = "\n".join(valuables)
     valuable_data = bytes(valuable_data, "ascii")
-    encrypted_master = encrypt_for_master(valuable_data)
 
+    encrypted_master = encrypt_for_master(valuable_data)[0]
+    # print(encrypted_master)
     # "Upload" it to pastebot (i.e. save in pastebot folder)
     f = open(os.path.join("pastebot.net", fn), "wb")
     f.write(encrypted_master)
@@ -34,11 +40,21 @@ def verify_file(f):
     # Verify the file was sent by the bot master
     # TODO: For Part 2, you'll use public key crypto here
     # Naive verification by ensuring the first line has the "passkey"
-    lines = f.split(bytes("\n", "ascii"), 1)
-    first_line = lines[0]
-    if first_line == bytes("Caesar", "ascii"):
-        return True
-    return False
+    lines = f.split(bytes("\n", "ascii"), 2)
+    if(len(lines) < 3):
+        return False
+    signature = str(lines[0], "ascii")
+    text = str(lines[1], "ascii")
+    if(not signature.isdigit()):
+        return False
+    signature = (int(signature),)
+    hash = MD5.new(text.encode('utf-8')).digest()
+    with open('pub_key', 'r') as f:
+        pub_key = RSA.importKey(f.read())
+    return pub_key.verify(hash, signature)
+    #if first_line == bytes("Caesar", "ascii"):
+    #    return True
+    #return False
 
 def process_file(fn, f):
     if verify_file(f):

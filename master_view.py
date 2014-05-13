@@ -1,10 +1,14 @@
 import os
-
+from Crypto.PublicKey import RSA
 
 def decrypt_valuables(f):
     # TODO: For Part 2, you'll need to decrypt the contents of this file
     # The existing scheme uploads in plaintext
     # As such, we just convert it back to ASCII and print it out
+    with open('pastebot.net/priv_key', 'r') as g:
+        key = RSA.importKey(g.read())
+    f = key.decrypt(f)
+
     decoded_text = str(f, 'ascii')
     print(decoded_text)
 
